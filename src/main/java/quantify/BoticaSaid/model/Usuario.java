@@ -33,6 +33,8 @@ public class Usuario {
     @Column(name = "contrasena", nullable = false)
     private String contrasena;
 
+
+    //actualizar solo en la base de datos
     @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 

@@ -10,19 +10,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import quantify.BoticaSaid.enums.EstadoToken;
+import quantify.BoticaSaid.model.Token;
+import quantify.BoticaSaid.repository.TokenRepository;
 import quantify.BoticaSaid.service.CustomUserDetailsService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenRepository tokenRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService userDetailsService, TokenRepository tokenRepository) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.tokenRepository = tokenRepository;
     }
 
     @Override
@@ -42,6 +48,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         jwt = authHeader.substring(7);
         dni = jwtUtil.obtenerDni(jwt);
+
+        // Verificamos si el token existe y está en estado VALIDO
+        Optional<Token> tokenOpt = tokenRepository.findByToken(jwt);
+        if (tokenOpt.isEmpty() || tokenOpt.get().getEstadoToken() != EstadoToken.VALIDO) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token inválido o revocado");
+            return;
+        }
 
         if (dni != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(dni);
