@@ -62,7 +62,7 @@ public class AuthService {
     }
 
     private void invalidarTokensPrevios(Usuario usuario) {
-        var tokens = tokenRepository.findAllByUsuarioAndExpiradoIsFalseAndRevocadoIsFalse(usuario);
+        var tokens = tokenRepository.findAllByUsuarioAndEstadoToken(usuario, EstadoToken.VALIDO);
         for (Token t : tokens) {
             t.setEstadoToken(EstadoToken.INVALIDO);
         }
