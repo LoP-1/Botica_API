@@ -14,7 +14,7 @@ public class MetodoPago {
     private NombreMetodo nombre;
 
     public enum NombreMetodo {
-        EFECTIVO, TARJETA, YAPE, PLIN
+        EFECTIVO, TARJETA, YAPE, PLIN , MIXTO
     }
 
     @Column(name = "efectivo")

@@ -24,13 +24,13 @@ public class VentaService {
     public VentaService(ProductoRepository productoRepository,
                         BoletaRepository boletaRepository,
                         DetalleBoletaRepository detalleBoletaRepository,
-                        MetodoPagoRepository metodoPagoRepository,
+                        MetodoPagoRepository metodoPagoRepository, // Lo mantenemos por si lo necesitas para otras operaciones
                         StockRepository stockRepository,
                         UsuarioRepository usuarioRepository) {
         this.productoRepository = productoRepository;
         this.boletaRepository = boletaRepository;
         this.detalleBoletaRepository = detalleBoletaRepository;
-        this.metodoPagoRepository = metodoPagoRepository;
+        this.metodoPagoRepository = metodoPagoRepository; // Lo mantenemos
         this.stockRepository = stockRepository;
         this.usuarioRepository = usuarioRepository;
     }
@@ -51,14 +51,17 @@ public class VentaService {
         double digital = ventaDTO.getMetodoPago().getDigital() != null ? ventaDTO.getMetodoPago().getDigital() : 0.0;
         double ingresoTotal = efectivo + digital;
 
-        // Crear método de pago (se guarda primero para asociarlo a la boleta)
+        // --- INICIO DE LA MODIFICACIÓN SUGERIDA ---
+
+        // Crear el método de pago
         MetodoPago metodoPago = new MetodoPago();
         metodoPago.setNombre(nombreMetodo);
         metodoPago.setEfectivo(efectivo);
         metodoPago.setDigital(digital);
-        metodoPagoRepository.save(metodoPago);
+        // NO se guarda aquí directamente metodoPagoRepository.save(metodoPago);
+        // Se guardará en cascada al persistir la Boleta
 
-        // Crear boleta con método de pago y usuario ya asignados
+        // Crear la boleta
         Boleta boleta = new Boleta();
         boleta.setDniCliente(ventaDTO.getDniCliente());
         boleta.setDniVendedor(ventaDTO.getDniVendedor());
@@ -66,9 +69,20 @@ public class VentaService {
         boleta.setTotalCompra(BigDecimal.ZERO); // Se actualiza después
         boleta.setNombreCliente(ventaDTO.getNombreCliente());
         boleta.setUsuario(usuario);
-        boleta.setMetodoPago(metodoPago); // ya asignado
         boleta.setVuelto(BigDecimal.ZERO); // temporalmente
+
+        // Establecer la relación bidireccional
+        // IMPORTANTE: Primero la boleta le asigna su metodo de pago
+        boleta.setMetodoPago(metodoPago);
+        // Y el metodo de pago le asigna su boleta (este es el lado propietario que JPA usará)
+        metodoPago.setBoleta(boleta);
+
+        // Guardar la boleta. Debido a cascade = CascadeType.ALL en Boleta,
+        // el MetodoPago asociado también se persistirá y se establecerá la clave foránea.
         Boleta boletaGuardada = boletaRepository.save(boleta);
+
+        // --- FIN DE LA MODIFICACIÓN SUGERIDA ---
+
 
         BigDecimal totalVenta = BigDecimal.ZERO;
 

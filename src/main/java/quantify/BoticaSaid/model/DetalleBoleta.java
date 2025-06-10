@@ -17,10 +17,7 @@ public class DetalleBoleta {
     private Boleta boleta;
 
     @ManyToOne
-    @JoinColumn(
-            name = "codigo_barras",
-            referencedColumnName = "codigo_barras"
-    )
+    @JoinColumn(name = "codigo_barras", referencedColumnName = "codigo_barras")
     private Producto producto;
 
     private Integer cantidad;
