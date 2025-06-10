@@ -1,5 +1,6 @@
 package quantify.BoticaSaid.model; // Asegúrate de que el paquete sea el correcto
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class MovimientoEfectivo {
     // Relación con Caja: un movimiento pertenece a una caja específica.
     @ManyToOne // Un MovimientoEfectivo pertenece a una Caja
     @JoinColumn(name = "caja_id", nullable = false) // Columna caja_id en la tabla movimientos_efectivo
+    @JsonIgnore
     private Caja caja;
 
     // Tipo de movimiento (por ejemplo: INGRESO, EGRESO).
@@ -39,8 +41,8 @@ public class MovimientoEfectivo {
     private LocalDateTime fecha;
 
     // Relación con Usuario: indica qué usuario realizó este movimiento.
-    @ManyToOne // Un MovimientoEfectivo es realizado por un Usuario
-    @JoinColumn(name = "usuario_id", nullable = false) // Columna usuario_id en la tabla movimientos_efectivo
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
     // --- Getters y Setters ---

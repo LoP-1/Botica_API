@@ -20,73 +20,63 @@ public class VentaService {
     private final MetodoPagoRepository metodoPagoRepository;
     private final StockRepository stockRepository;
     private final UsuarioRepository usuarioRepository;
+    private final CajaRepository cajaRepository;
+    private final MovimientoEfectivoRepository movimientoEfectivoRepository;
 
     public VentaService(ProductoRepository productoRepository,
                         BoletaRepository boletaRepository,
                         DetalleBoletaRepository detalleBoletaRepository,
-                        MetodoPagoRepository metodoPagoRepository, // Lo mantenemos por si lo necesitas para otras operaciones
+                        MetodoPagoRepository metodoPagoRepository,
                         StockRepository stockRepository,
-                        UsuarioRepository usuarioRepository) {
+                        UsuarioRepository usuarioRepository,
+                        CajaRepository cajaRepository,
+                        MovimientoEfectivoRepository movimientoEfectivoRepository) {
         this.productoRepository = productoRepository;
         this.boletaRepository = boletaRepository;
         this.detalleBoletaRepository = detalleBoletaRepository;
-        this.metodoPagoRepository = metodoPagoRepository; // Lo mantenemos
+        this.metodoPagoRepository = metodoPagoRepository;
         this.stockRepository = stockRepository;
         this.usuarioRepository = usuarioRepository;
+        this.cajaRepository = cajaRepository;
+        this.movimientoEfectivoRepository = movimientoEfectivoRepository;
     }
 
     @Transactional
     public void registrarVenta(VentaRequestDTO ventaDTO) {
-        // Buscar usuario (vendedor) por DNI
         Usuario usuario = usuarioRepository.findByDni(ventaDTO.getDniVendedor())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con DNI: " + ventaDTO.getDniVendedor()));
 
-        // Convertir el nombre del método de pago a enum
+        // Validar que exista una caja abierta
+        Caja cajaAbierta = cajaRepository.findCajaAbiertaPorDniUsuario(usuario.getDni())
+                .orElseThrow(() -> new RuntimeException("No hay una caja abierta para este usuario"));
+
         MetodoPago.NombreMetodo nombreMetodo = MetodoPago.NombreMetodo.valueOf(
                 ventaDTO.getMetodoPago().getNombre().toUpperCase()
         );
 
-        // Calcular ingreso y vuelto
         double efectivo = ventaDTO.getMetodoPago().getEfectivo() != null ? ventaDTO.getMetodoPago().getEfectivo() : 0.0;
         double digital = ventaDTO.getMetodoPago().getDigital() != null ? ventaDTO.getMetodoPago().getDigital() : 0.0;
         double ingresoTotal = efectivo + digital;
 
-        // --- INICIO DE LA MODIFICACIÓN SUGERIDA ---
-
-        // Crear el método de pago
         MetodoPago metodoPago = new MetodoPago();
         metodoPago.setNombre(nombreMetodo);
         metodoPago.setEfectivo(efectivo);
         metodoPago.setDigital(digital);
-        // NO se guarda aquí directamente metodoPagoRepository.save(metodoPago);
-        // Se guardará en cascada al persistir la Boleta
 
-        // Crear la boleta
         Boleta boleta = new Boleta();
         boleta.setDniCliente(ventaDTO.getDniCliente());
         boleta.setDniVendedor(ventaDTO.getDniVendedor());
         boleta.setFechaVenta(LocalDateTime.now());
-        boleta.setTotalCompra(BigDecimal.ZERO); // Se actualiza después
+        boleta.setTotalCompra(BigDecimal.ZERO);
         boleta.setNombreCliente(ventaDTO.getNombreCliente());
         boleta.setUsuario(usuario);
-        boleta.setVuelto(BigDecimal.ZERO); // temporalmente
-
-        // Establecer la relación bidireccional
-        // IMPORTANTE: Primero la boleta le asigna su metodo de pago
         boleta.setMetodoPago(metodoPago);
-        // Y el metodo de pago le asigna su boleta (este es el lado propietario que JPA usará)
         metodoPago.setBoleta(boleta);
 
-        // Guardar la boleta. Debido a cascade = CascadeType.ALL en Boleta,
-        // el MetodoPago asociado también se persistirá y se establecerá la clave foránea.
         Boleta boletaGuardada = boletaRepository.save(boleta);
-
-        // --- FIN DE LA MODIFICACIÓN SUGERIDA ---
-
 
         BigDecimal totalVenta = BigDecimal.ZERO;
 
-        // Procesar productos con lógica FIFO
         for (DetalleProductoDTO item : ventaDTO.getProductos()) {
             String codBarras = item.getCodBarras();
             int cantidadSolicitada = item.getCantidad();
@@ -107,7 +97,6 @@ public class VentaService {
                 cantidadRestante -= cantidadUsada;
                 stockRepository.save(stock);
 
-                // Detalle de boleta
                 DetalleBoleta detalle = new DetalleBoleta();
                 detalle.setBoleta(boletaGuardada);
                 detalle.setProducto(producto);
@@ -130,10 +119,34 @@ public class VentaService {
             productoRepository.save(producto);
         }
 
-        // Actualizar total y vuelto
         BigDecimal vuelto = BigDecimal.valueOf(ingresoTotal).subtract(totalVenta);
         boletaGuardada.setTotalCompra(totalVenta);
         boletaGuardada.setVuelto(vuelto);
         boletaRepository.save(boletaGuardada);
+
+        // Registrar movimiento de efectivo en la caja
+        MovimientoEfectivo movimiento = new MovimientoEfectivo();
+        movimiento.setCaja(cajaAbierta);
+        movimiento.setTipo(MovimientoEfectivo.TipoMovimiento.INGRESO);
+        movimiento.setFecha(LocalDateTime.now());
+        movimiento.setMonto(totalVenta);
+        movimiento.setDescripcion("Venta registrada - Boleta ID: " + boletaGuardada.getId());
+        movimiento.setUsuario(usuario);
+        movimientoEfectivoRepository.save(movimiento);
+
+        // Actualizar totales en la caja
+        if (nombreMetodo == MetodoPago.NombreMetodo.EFECTIVO) {
+            cajaAbierta.setEfectivoFinal(
+                    (cajaAbierta.getEfectivoFinal() != null ? cajaAbierta.getEfectivoFinal() : BigDecimal.ZERO)
+                            .add(totalVenta)
+            );
+        } else if (nombreMetodo == MetodoPago.NombreMetodo.YAPE) {
+            cajaAbierta.setTotalYape(
+                    (cajaAbierta.getTotalYape() != null ? cajaAbierta.getTotalYape() : BigDecimal.ZERO)
+                            .add(totalVenta)
+            );
+        }
+
+        cajaRepository.save(cajaAbierta);
     }
 }
