@@ -1,0 +1,30 @@
+package quantify.BoticaSaid.controller;
+
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import quantify.BoticaSaid.dto.VentaRequestDTO;
+import quantify.BoticaSaid.service.VentaService;
+
+@RestController
+@RequestMapping("/api/ventas")
+public class VentaController {
+
+    private final VentaService ventaService;
+
+    public VentaController(VentaService ventaService) {
+        this.ventaService = ventaService;
+    }
+
+    @PostMapping
+    public ResponseEntity<String> registrarVenta(@RequestBody VentaRequestDTO ventaDTO) {
+        try {
+            ventaService.registrarVenta(ventaDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Venta registrada exitosamente");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error al registrar venta: " + e.getMessage());
+        }
+    }
+}
+
