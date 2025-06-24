@@ -2,6 +2,10 @@
 
 Botica_API es una API RESTful desarrollada en Java que proporciona las funcionalidades esenciales para la gestión de una botica (farmacia). Incluye control de usuarios, autenticación segura con JWT, manejo de caja, gestión de productos y stock bajo lógica FIFO, todo trabajando sobre una base de datos local. El despliegue se realiza fácilmente a través de un archivo `.jar`.
 
+## Descarga rápida
+
+[Descargar Botica_API.jar](https://github.com/LoP-1/Botica_API/releases/latest/download/Botica_API.jar)
+
 ## Funcionalidades principales
 
 - **Gestión de usuarios:**  
