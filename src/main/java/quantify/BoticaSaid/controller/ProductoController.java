@@ -70,7 +70,6 @@ public class ProductoController {
         }
     }
 
-
     // 7. Actualizar datos del producto
     @PutMapping("/{codigoBarras}")
     public ResponseEntity<Producto> actualizarPorCodigoBarras(

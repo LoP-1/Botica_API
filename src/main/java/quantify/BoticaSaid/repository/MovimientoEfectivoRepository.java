@@ -10,4 +10,5 @@ import quantify.BoticaSaid.model.Caja;
 @Repository
 public interface MovimientoEfectivoRepository extends JpaRepository<MovimientoEfectivo, Integer> {
     List<MovimientoEfectivo> findByCaja(Caja caja);
+    List<MovimientoEfectivo> findByCajaAndEsManual(Caja caja, boolean esManual);
 }

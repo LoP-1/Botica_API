@@ -11,7 +11,6 @@ import java.util.List;
 import quantify.BoticaSaid.dto.AgregarStockRequest;
 import quantify.BoticaSaid.repository.StockRepository;
 import java.util.ArrayList;
-import java.util.Optional;
 
 @Service
 public class ProductoService {
@@ -22,8 +21,13 @@ public class ProductoService {
     @Autowired
     private StockRepository stockRepository;
 
-    // 1. Crear producto con stock
+    // 1. Crear producto con stock (valida duplicidad por código de barras)
     public Producto crearProductoConStock(ProductoRequest request) {
+        // Validar si ya existe ese código de barras
+        if (productoRepository.findByCodigoBarras(request.getCodigoBarras()) != null) {
+            throw new IllegalArgumentException("Ya existe un producto con ese código de barras.");
+        }
+
         Producto producto = new Producto();
         producto.setCodigoBarras(request.getCodigoBarras());
         producto.setNombre(request.getNombre());
@@ -96,7 +100,7 @@ public class ProductoService {
         }
     }
 
-    // 6. Eliminar producto por ID
+    // 6. Eliminar producto por código de barras
     public boolean eliminarPorCodigoBarras(String codigoBarras) {
         Producto producto = productoRepository.findByCodigoBarras(codigoBarras);
         if (producto != null) {
@@ -105,7 +109,6 @@ public class ProductoService {
         }
         return false;
     }
-
 
     // 7. Actualizar datos de un producto
     public Producto actualizarPorCodigoBarras(String codigoBarras, ProductoRequest request) {
@@ -123,7 +126,6 @@ public class ProductoService {
         }
         return null;
     }
-
 
     // 8. Buscar productos con stock menor a cierto umbral
     public List<Producto> buscarProductosConStockMenorA(int umbral) {

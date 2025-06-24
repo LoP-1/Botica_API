@@ -1,9 +1,8 @@
 package quantify.BoticaSaid.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -12,10 +11,7 @@ import java.util.List;
 public class Producto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-
-    @Column(name = "codigo_barras", unique = true)
+    @Column(name = "codigo_barras", length = 255)
     private String codigoBarras;
 
     private String nombre;
@@ -41,21 +37,10 @@ public class Producto {
     @Column(name = "fecha_actualizacion", insertable = false, updatable = false)
     private Date fechaActualizacion;
 
-
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<Stock> stocks;
+    private List<Stock> stocks = new ArrayList<>();
 
     // Getters y Setters
-
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getCodigoBarras() {
         return codigoBarras;

@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import quantify.BoticaSaid.model.Caja;
 import quantify.BoticaSaid.model.Usuario;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +20,7 @@ public interface CajaRepository extends JpaRepository<Caja, Long> {
 
     @Query("SELECT c FROM Caja c WHERE c.usuario.dni = :dni AND c.fechaCierre IS NULL")
     Optional<Caja> findCajaAbiertaPorDniUsuario(@Param("dni") String dni);
+    List<Caja> findByFechaCierreIsNull();
 
 }
 

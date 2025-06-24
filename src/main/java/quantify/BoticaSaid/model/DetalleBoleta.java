@@ -1,7 +1,6 @@
 package quantify.BoticaSaid.model;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 
 @Entity
@@ -12,11 +11,11 @@ public class DetalleBoleta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "boleta_id")
     private Boleta boleta;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "codigo_barras", referencedColumnName = "codigo_barras")
     private Producto producto;
 
@@ -26,7 +25,6 @@ public class DetalleBoleta {
     private BigDecimal precioUnitario;
 
     // Getters y setters
-
 
     public Integer getId() {
         return id;

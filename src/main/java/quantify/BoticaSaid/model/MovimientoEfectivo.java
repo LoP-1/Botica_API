@@ -45,6 +45,9 @@ public class MovimientoEfectivo {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
+    @Column(name = "es_manual", nullable = false)
+    private Boolean esManual = true; // Por defecto, true para los movimientos hechos manualmente
+
     // --- Getters y Setters ---
     public Integer getId() {
         return id;
@@ -100,5 +103,13 @@ public class MovimientoEfectivo {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+    public Boolean getEsManual() {
+        return esManual;
+    }
+
+    public void setEsManual(Boolean esManual) {
+        this.esManual = esManual;
     }
 }

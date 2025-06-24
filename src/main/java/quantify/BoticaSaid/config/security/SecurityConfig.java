@@ -29,11 +29,20 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors
+                        .configurationSource(request -> {
+                            org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000")); // Cambia según tu frontend
+                            config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                            config.setAllowedHeaders(java.util.List.of("*"));
+                            config.setAllowCredentials(true);
+                            return config;
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","/rico/**").permitAll()
+                        .requestMatchers("/auth/**", "/rico/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // Registramos el filtro JWT para que se ejecute antes del filtro de autenticación por formulario
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

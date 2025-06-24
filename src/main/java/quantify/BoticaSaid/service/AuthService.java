@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import quantify.BoticaSaid.dto.AuthRequest;
 import quantify.BoticaSaid.dto.AuthResponse;
 import quantify.BoticaSaid.dto.RegisterRequest;
+import quantify.BoticaSaid.dto.UsuarioDto;
 import quantify.BoticaSaid.enums.EstadoToken;
 import quantify.BoticaSaid.enums.Rol;
 import quantify.BoticaSaid.enums.TipoToken;
@@ -56,8 +57,17 @@ public class AuthService {
         token.setEstadoToken(EstadoToken.VALIDO);
         tokenRepository.save(token);
 
+        // Construir el UsuarioDto
+        UsuarioDto usuarioDto = new UsuarioDto(
+                usuario.getDni(),
+                usuario.getNombreCompleto(),
+                usuario.getRol().toString() // Si es Enum, usa .toString() o .name()
+        );
+
         AuthResponse response = new AuthResponse();
         response.setToken(jwt);
+        response.setUsuario(usuarioDto);
+
         return response;
     }
 
