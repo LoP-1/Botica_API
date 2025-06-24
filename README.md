@@ -4,7 +4,7 @@ Botica_API es una API RESTful desarrollada en Java que proporciona las funcional
 
 ## Descarga rápida
 
-[Descargar Botica_API.jar](https://github.com/LoP-1/Botica_API/releases/latest/download/Botica_API.jar)
+[Descargar Botica_API.jar](https://github.com/LoP-1/Botica_API/releases/tag/api-rest)
 
 ## Funcionalidades principales
 
