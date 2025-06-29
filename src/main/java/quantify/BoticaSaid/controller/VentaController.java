@@ -4,8 +4,10 @@ package quantify.BoticaSaid.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import quantify.BoticaSaid.dto.ProductoResponse;
 import quantify.BoticaSaid.dto.VentaRequestDTO;
 import quantify.BoticaSaid.dto.VentaResponseDTO;
+import quantify.BoticaSaid.model.Producto;
 import quantify.BoticaSaid.service.VentaService;
 
 import java.util.List;
@@ -34,6 +36,7 @@ public class VentaController {
         List<VentaResponseDTO> ventas = ventaService.listarVentas();
         return ResponseEntity.ok(ventas);
     }
+
 
 
 }

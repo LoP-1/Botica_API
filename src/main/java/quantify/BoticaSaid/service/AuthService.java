@@ -19,6 +19,7 @@ import quantify.BoticaSaid.repository.TokenRepository;
 import quantify.BoticaSaid.repository.UsuarioRepository;
 
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class AuthService {
@@ -57,11 +58,16 @@ public class AuthService {
         token.setEstadoToken(EstadoToken.VALIDO);
         tokenRepository.save(token);
 
-        // Construir el UsuarioDto
+        // Construir el UsuarioDto (convertir LocalTime a String)
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
         UsuarioDto usuarioDto = new UsuarioDto(
                 usuario.getDni(),
                 usuario.getNombreCompleto(),
-                usuario.getRol().toString() // Si es Enum, usa .toString() o .name()
+                usuario.getRol().toString(),
+                usuario.getHorarioEntrada() != null ? usuario.getHorarioEntrada().format(timeFormatter) : null,
+                usuario.getHorarioSalida() != null ? usuario.getHorarioSalida().format(timeFormatter) : null,
+                usuario.getTurno()
         );
 
         AuthResponse response = new AuthResponse();
@@ -78,7 +84,6 @@ public class AuthService {
         }
         tokenRepository.saveAll(tokens);
     }
-
 
     public AuthResponse register(RegisterRequest request) {
         if (usuarioRepo.findByDni(request.getDni()).isPresent()) {
@@ -111,7 +116,6 @@ public class AuthService {
         // Generar token JWT con el DNI guardado
         String jwt = jwtUtil.generarToken(usuarioGuardado.getDni());
 
-
         Token token = new Token();
         token.setToken(jwt);
         token.setUsuario(usuarioGuardado);
@@ -125,5 +129,4 @@ public class AuthService {
 
         return response;
     }
-
 }

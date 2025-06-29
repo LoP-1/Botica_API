@@ -2,9 +2,13 @@ package quantify.BoticaSaid.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import quantify.BoticaSaid.dto.UsuarioDto;
 import quantify.BoticaSaid.model.Usuario;
 import quantify.BoticaSaid.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -81,6 +85,25 @@ public class UsuarioController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioDto> obtenerMiUsuario(Authentication authentication) {
+        String dni = authentication.getName();
+        Usuario usuario = usuarioService.obtenerPorDni(dni);
+        if (usuario != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            UsuarioDto usuarioDto = new UsuarioDto(
+                    usuario.getDni(),
+                    usuario.getNombreCompleto(),
+                    usuario.getRol().toString(),
+                    usuario.getHorarioEntrada() != null ? usuario.getHorarioEntrada().format(formatter) : null,
+                    usuario.getHorarioSalida() != null ? usuario.getHorarioSalida().format(formatter) : null,
+                    usuario.getTurno()
+            );
+            return ResponseEntity.ok(usuarioDto);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
     public static class CambiarContrasenaRequest {
         private String contrasena;
         public String getContrasena() { return contrasena; }

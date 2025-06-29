@@ -1,49 +1,18 @@
-package quantify.BoticaSaid.model;
+package quantify.BoticaSaid.dto;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
-@Entity
-@Table(name = "productos")
-public class Producto {
-
-    @Id
-    @Column(name = "codigo_barras", length = 255)
+public class ProductoResponse {
     private String codigoBarras;
-
     private String nombre;
-
     private String concentracion;
-
-    @Column(name = "cantidad_general")
     private int cantidadGeneral;
-
-    @Column(name = "precio_venta_und")
     private BigDecimal precioVentaUnd;
-
-    @Column(name = "descuento")
-    private BigDecimal descuento;
-
+    private BigDecimal descuento; // <--- AGREGA ESTE CAMPO
     private String laboratorio;
-
     private String categoria;
 
-    @Column(name = "fecha_creacion", insertable = false, updatable = false)
-    private Date fechaCreacion;
-
-    @Column(name = "fecha_actualizacion", insertable = false, updatable = false)
-    private Date fechaActualizacion;
-
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Stock> stocks = new ArrayList<>();
-
-    @Column(nullable = false)
-    private boolean activo = true;
-
-    // Getters y Setters
+    // Getters y setters
 
     public String getCodigoBarras() {
         return codigoBarras;
@@ -108,30 +77,4 @@ public class Producto {
     public void setCategoria(String categoria) {
         this.categoria = categoria;
     }
-
-    public Date getFechaCreacion() {
-        return fechaCreacion;
-    }
-
-    public void setFechaCreacion(Date fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
-    }
-
-    public Date getFechaActualizacion() {
-        return fechaActualizacion;
-    }
-
-    public void setFechaActualizacion(Date fechaActualizacion) {
-        this.fechaActualizacion = fechaActualizacion;
-    }
-
-    public List<Stock> getStocks() {
-        return stocks;
-    }
-
-    public void setStocks(List<Stock> stocks) {
-        this.stocks = stocks;
-    }
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
 }

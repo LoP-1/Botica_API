@@ -11,8 +11,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import quantify.BoticaSaid.jwt.JwtAuthenticationFilter;
 import quantify.BoticaSaid.service.CustomUserDetailsService;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -32,7 +35,7 @@ public class SecurityConfig {
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
-                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000")); // Cambia según tu frontend
+                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000","http://localhost:8080","http://192.168.1.11:3000", "http://192.168.56.1:3000", "http://51.161.10.179:3000"));
                             config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                             config.setAllowedHeaders(java.util.List.of("*"));
                             config.setAllowCredentials(true);
@@ -40,7 +43,7 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/rico/**").permitAll()
+                        .requestMatchers("/auth/*", "/rico/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
