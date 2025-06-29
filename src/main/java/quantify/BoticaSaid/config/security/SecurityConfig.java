@@ -1,5 +1,7 @@
 package quantify.BoticaSaid.config.security;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,14 +13,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
 import quantify.BoticaSaid.jwt.JwtAuthenticationFilter;
 import quantify.BoticaSaid.service.CustomUserDetailsService;
 
-import java.util.List;
-
 @Configuration
 public class SecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -30,12 +31,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("Cargando configuración de seguridad: endpoints públicos configurados para /auth/*, /rico/*, /v3/api-docs/**, /swagger-ui.html, /swagger-ui/**, /swagger-ui/index.html");
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
-                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000","http://localhost:8080","http://192.168.1.11:3000", "http://192.168.56.1:3000", "http://51.161.10.179:3000"));
+                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000", "http://localhost:8080", "http://192.168.1.11:3000", "http://192.168.56.1:3000", "http://51.161.10.179:3000"));
                             config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                             config.setAllowedHeaders(java.util.List.of("*"));
                             config.setAllowCredentials(true);
@@ -43,7 +45,15 @@ public class SecurityConfig {
                         })
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/*", "/rico/*").permitAll()
+                        .requestMatchers(
+                                "/auth/*",
+                                "/rico/*",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yml",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-ui/index.html"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
