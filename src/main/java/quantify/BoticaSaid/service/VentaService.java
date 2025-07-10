@@ -60,6 +60,30 @@ public class VentaService {
         double digital = ventaDTO.getMetodoPago().getDigital() != null ? ventaDTO.getMetodoPago().getDigital() : 0.0;
         double ingresoTotal = efectivo + digital;
 
+        for (DetalleProductoDTO producto : ventaDTO.getProductos()) {
+            if (producto.getCantidad() <= 0) {
+                throw new RuntimeException("No se puede vender cantidades iguales o menores a cero para el producto con código de barras: " + producto.getCodBarras());
+            }
+        }
+
+        //Calcular el total real de la venta antes de continuar
+        BigDecimal totalVentaCalculado = BigDecimal.ZERO;
+        for (DetalleProductoDTO item : ventaDTO.getProductos()) {
+            Producto producto = productoRepository.findByCodigoBarras(item.getCodBarras());
+            if (producto == null) {
+                throw new RuntimeException("Producto no encontrado: " + item.getCodBarras());
+            }
+            totalVentaCalculado = totalVentaCalculado.add(
+                producto.getPrecioVentaUnd().multiply(BigDecimal.valueOf(item.getCantidad()))
+            );
+        }
+
+        //Validar que la suma del pago sea suficiente
+        if (BigDecimal.valueOf(ingresoTotal).compareTo(totalVentaCalculado) < 0) {
+            throw new RuntimeException("El monto pagado (" + ingresoTotal + 
+                ") es insuficiente para cubrir el total de la venta (" + totalVentaCalculado + ").");
+        }
+
         MetodoPago metodoPago = new MetodoPago();
         metodoPago.setNombre(nombreMetodo);
         metodoPago.setEfectivo(efectivo);
@@ -82,6 +106,12 @@ public class VentaService {
         for (DetalleProductoDTO item : ventaDTO.getProductos()) {
             String codBarras = item.getCodBarras();
             int cantidadSolicitada = item.getCantidad();
+
+            // --- VALIDACIÓN EXTRA (OPCIONAL REDUNDANTE, SOLO POR SEGURIDAD) ---
+            if (cantidadSolicitada <= 0) {
+                throw new RuntimeException("No se puede vender cantidades iguales o menores a cero para el producto con código de barras: " + codBarras);
+            }
+            // ---------------------------------------------------------
 
             Producto producto = productoRepository.findByCodigoBarras(codBarras);
             if (producto == null) {
@@ -107,7 +137,7 @@ public class VentaService {
                 detalleBoletaRepository.save(detalle);
 
                 totalVenta = totalVenta.add(
-                        producto.getPrecioVentaUnd().multiply(BigDecimal.valueOf(cantidadUsada))
+                    producto.getPrecioVentaUnd().multiply(BigDecimal.valueOf(cantidadUsada))
                 );
 
                 if (cantidadRestante == 0) break;
@@ -140,24 +170,22 @@ public class VentaService {
         // Actualizar totales en la caja
         if (nombreMetodo == MetodoPago.NombreMetodo.EFECTIVO) {
             cajaAbierta.setEfectivoFinal(
-                    (cajaAbierta.getEfectivoFinal() != null ? cajaAbierta.getEfectivoFinal() : BigDecimal.ZERO)
-                            .add(BigDecimal.valueOf(efectivo))
+                (cajaAbierta.getEfectivoFinal() != null ? cajaAbierta.getEfectivoFinal() : BigDecimal.ZERO)
+                    .add(BigDecimal.valueOf(efectivo))
             );
         } else if (nombreMetodo == MetodoPago.NombreMetodo.YAPE) {
             cajaAbierta.setTotalYape(
-                    (cajaAbierta.getTotalYape() != null ? cajaAbierta.getTotalYape() : BigDecimal.ZERO)
-                            .add(BigDecimal.valueOf(digital))
+                (cajaAbierta.getTotalYape() != null ? cajaAbierta.getTotalYape() : BigDecimal.ZERO)
+                    .add(BigDecimal.valueOf(digital))
             );
         } else if (nombreMetodo == MetodoPago.NombreMetodo.MIXTO) {
-            // Suma efectivo a efectivoFinal
             cajaAbierta.setEfectivoFinal(
-                    (cajaAbierta.getEfectivoFinal() != null ? cajaAbierta.getEfectivoFinal() : BigDecimal.ZERO)
-                            .add(BigDecimal.valueOf(efectivo))
+                (cajaAbierta.getEfectivoFinal() != null ? cajaAbierta.getEfectivoFinal() : BigDecimal.ZERO)
+                    .add(BigDecimal.valueOf(efectivo))
             );
-            // Suma digital a totalYape
             cajaAbierta.setTotalYape(
-                    (cajaAbierta.getTotalYape() != null ? cajaAbierta.getTotalYape() : BigDecimal.ZERO)
-                            .add(BigDecimal.valueOf(digital))
+                (cajaAbierta.getTotalYape() != null ? cajaAbierta.getTotalYape() : BigDecimal.ZERO)
+                    .add(BigDecimal.valueOf(digital))
             );
         }
 
@@ -183,7 +211,18 @@ public class VentaService {
             prodDto.setCodBarras(detalle.getProducto().getCodigoBarras());
             prodDto.setNombre(detalle.getProducto().getNombre());
             prodDto.setCantidad(detalle.getCantidad());
-            prodDto.setPrecio(detalle.getPrecioUnitario());
+
+            //llamar a la base de datos y conseguir el precio del producto
+            String codigoBarras = detalle.getProducto().getCodigoBarras() != null ? detalle.getProducto().getCodigoBarras() : "";
+            Producto producto = productoRepository.findByCodigoBarras(codigoBarras);
+
+            if (producto != null) {
+                BigDecimal precio = producto.getPrecioVentaUnd();
+                prodDto.setPrecio(precio);
+            } else {
+                throw new RuntimeException("Producto no encontrado: " + codigoBarras);
+            }
+
             return prodDto;
         }).collect(Collectors.toList())
                 : List.of();
