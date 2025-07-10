@@ -1,11 +1,11 @@
 package quantify.BoticaSaid.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "stock")
@@ -19,20 +19,28 @@ public class Stock {
     private int cantidadUnidades;
 
     @Column(name = "fecha_vencimiento")
-    @Temporal(TemporalType.DATE)
-    private Date fechaVencimiento;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaVencimiento; // LocalDate en lugar de Date
 
     @Column(name = "precio_compra")
     private BigDecimal precioCompra;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id")
     @JsonIgnore
     private Producto producto;
 
+    // Constructor vacío
+    public Stock() {}
+
+    // Constructor con parámetros
+    public Stock(int cantidadUnidades, LocalDate fechaVencimiento, BigDecimal precioCompra) {
+        this.cantidadUnidades = cantidadUnidades;
+        this.fechaVencimiento = fechaVencimiento;
+        this.precioCompra = precioCompra;
+    }
+
     // Getters y Setters
-
-
     public int getId() {
         return id;
     }
@@ -49,11 +57,11 @@ public class Stock {
         this.cantidadUnidades = cantidadUnidades;
     }
 
-    public Date getFechaVencimiento() {
+    public LocalDate getFechaVencimiento() {
         return fechaVencimiento;
     }
 
-    public void setFechaVencimiento(Date fechaVencimiento) {
+    public void setFechaVencimiento(LocalDate fechaVencimiento) {
         this.fechaVencimiento = fechaVencimiento;
     }
 

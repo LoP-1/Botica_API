@@ -37,14 +37,17 @@ public class Producto {
     @Column(name = "fecha_actualizacion", insertable = false, updatable = false)
     private Date fechaActualizacion;
 
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Stock> stocks = new ArrayList<>();
-
     @Column(nullable = false)
     private boolean activo = true;
 
-    // Getters y Setters
 
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Stock> stocks = new ArrayList<>();
+
+    // Constructor vacío
+    public Producto() {}
+
+    // Getters y Setters
     public String getCodigoBarras() {
         return codigoBarras;
     }
@@ -132,6 +135,12 @@ public class Producto {
     public void setStocks(List<Stock> stocks) {
         this.stocks = stocks;
     }
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
 }
