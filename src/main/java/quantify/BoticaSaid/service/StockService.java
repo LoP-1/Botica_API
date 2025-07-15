@@ -7,7 +7,8 @@ import quantify.BoticaSaid.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,12 +20,12 @@ public class StockService {
 
     public List<StockItemDTO> listarStock() {
         List<Stock> stocks = stockRepository.findAllWithProducto();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         return stocks.stream().map(stock -> {
             Producto producto = stock.getProducto();
             String fechaIso = stock.getFechaVencimiento() != null
-                    ? sdf.format(stock.getFechaVencimiento())
+                    ? stock.getFechaVencimiento().format(formatter)  // ← Cambié de sdf.format() a .format()
                     : null;
             return new StockItemDTO(
                     stock.getId(),
@@ -32,9 +33,9 @@ public class StockService {
                     producto.getNombre(),
                     producto.getConcentracion(),
                     stock.getCantidadUnidades(),
-                    producto.getCantidadGeneral(), // cantidadMinima
+                    producto.getCantidadGeneral(),
                     stock.getPrecioCompra(),
-                    producto.getPrecioVentaUnd(), // <-- asegúrate que este getter existe
+                    producto.getPrecioVentaUnd(),
                     fechaIso,
                     producto.getLaboratorio(),
                     producto.getCategoria()
@@ -47,10 +48,12 @@ public class StockService {
                 .orElseThrow(() -> new RuntimeException("Stock no encontrado"));
         stock.setCantidadUnidades(dto.getCantidadUnidades());
         stock.setPrecioCompra(dto.getPrecioCompra());
-        // Convierte fecha string de vuelta a Date si es necesario
+
+        // ✅ CORREGIDO: Usar LocalDate.parse() en lugar de SimpleDateFormat.parse()
         try {
             if (dto.getFechaVencimiento() != null) {
-                stock.setFechaVencimiento(new SimpleDateFormat("yyyy-MM-dd").parse(dto.getFechaVencimiento()));
+                LocalDate fecha = LocalDate.parse(dto.getFechaVencimiento(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                stock.setFechaVencimiento(fecha);  // ← Ahora pasa LocalDate correctamente
             }
         } catch (Exception e) {
             // Manejar parseo

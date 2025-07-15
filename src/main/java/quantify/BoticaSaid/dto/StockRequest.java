@@ -1,15 +1,21 @@
 package quantify.BoticaSaid.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 
 public class StockRequest {
     private int cantidadUnidades;
-    private Date fechaVencimiento;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fechaVencimiento;
+
     private BigDecimal precioCompra;
 
-    // Getters y setters
+    // Constructor vacío
+    public StockRequest() {}
 
+    // Getters y Setters
     public int getCantidadUnidades() {
         return cantidadUnidades;
     }
@@ -18,11 +24,11 @@ public class StockRequest {
         this.cantidadUnidades = cantidadUnidades;
     }
 
-    public Date getFechaVencimiento() {
+    public LocalDate getFechaVencimiento() {
         return fechaVencimiento;
     }
 
-    public void setFechaVencimiento(Date fechaVencimiento) {
+    public void setFechaVencimiento(LocalDate fechaVencimiento) {
         this.fechaVencimiento = fechaVencimiento;
     }
 

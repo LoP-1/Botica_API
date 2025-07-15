@@ -12,11 +12,29 @@ public class ProductoRequest {
     private BigDecimal descuento;
     private String laboratorio;
     private String categoria;
+    private int cantidadUnidadesBlister;
+    private BigDecimal precioVentaBlister;
 
     private List<StockRequest> stocks;
 
     // Getters y setters
 
+
+    public int getCantidadUnidadesBlister() {
+        return cantidadUnidadesBlister;
+    }
+
+    public void setCantidadUnidadesBlister(int cantidadUnidadesBlister) {
+        this.cantidadUnidadesBlister = cantidadUnidadesBlister;
+    }
+
+    public BigDecimal getPrecioVentaBlister() {
+        return precioVentaBlister;
+    }
+
+    public void setPrecioVentaBlister(BigDecimal precioBlister) {
+        this.precioVentaBlister = precioBlister;
+    }
 
     public String getCodigoBarras() {
         return codigoBarras;

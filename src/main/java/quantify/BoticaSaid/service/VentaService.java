@@ -119,31 +119,76 @@ public class VentaService {
             }
 
             List<Stock> stocks = stockRepository.findByProductoOrderByFechaVencimientoAsc(producto);
-            int cantidadRestante = cantidadSolicitada;
 
-            for (Stock stock : stocks) {
-                if (stock.getCantidadUnidades() == 0) continue;
+            Integer unidadesPorBlister = producto.getCantidadUnidadesBlister();
+            BigDecimal precioBlister = producto.getPrecioVentaBlister();
+            BigDecimal precioUnidad = producto.getPrecioVentaUnd();
 
-                int cantidadUsada = Math.min(stock.getCantidadUnidades(), cantidadRestante);
-                stock.setCantidadUnidades(stock.getCantidadUnidades() - cantidadUsada);
-                cantidadRestante -= cantidadUsada;
-                stockRepository.save(stock);
+            int cantidadBlisters = 0;
+            int unidadesSueltas = cantidadSolicitada;
 
-                DetalleBoleta detalle = new DetalleBoleta();
-                detalle.setBoleta(boletaGuardada);
-                detalle.setProducto(producto);
-                detalle.setCantidad(cantidadUsada);
-                detalle.setPrecioUnitario(producto.getPrecioVentaUnd());
-                detalleBoletaRepository.save(detalle);
-
-                totalVenta = totalVenta.add(
-                    producto.getPrecioVentaUnd().multiply(BigDecimal.valueOf(cantidadUsada))
-                );
-
-                if (cantidadRestante == 0) break;
+            if (unidadesPorBlister != null && unidadesPorBlister > 0 && precioBlister != null && precioBlister.compareTo(BigDecimal.ZERO) > 0) {
+                cantidadBlisters = cantidadSolicitada / unidadesPorBlister;
+                unidadesSueltas = cantidadSolicitada % unidadesPorBlister;
             }
 
-            if (cantidadRestante > 0) {
+            // Primero, descontar y registrar los blisters completos
+            int unidadesParaBlisters = cantidadBlisters * (unidadesPorBlister != null ? unidadesPorBlister : 0);
+            int cantidadRestanteBlister = unidadesParaBlisters;
+
+            // Control para no pasar dos veces por stocks si no hay blisters
+            if (cantidadBlisters > 0) {
+                for (Stock stock : stocks) {
+                    if (cantidadRestanteBlister == 0) break;
+                    if (stock.getCantidadUnidades() == 0) continue;
+                    int cantidadUsada = Math.min(stock.getCantidadUnidades(), cantidadRestanteBlister);
+                    stock.setCantidadUnidades(stock.getCantidadUnidades() - cantidadUsada);
+                    cantidadRestanteBlister -= cantidadUsada;
+                    stockRepository.save(stock);
+
+
+                    int blisterEnEsteStock = cantidadUsada / unidadesPorBlister;
+                    if (blisterEnEsteStock > 0) {
+                        DetalleBoleta detalleBlister = new DetalleBoleta();
+                        detalleBlister.setBoleta(boletaGuardada);
+                        detalleBlister.setProducto(producto);
+                        detalleBlister.setCantidad(blisterEnEsteStock * unidadesPorBlister);
+                        detalleBlister.setPrecioUnitario(precioBlister);
+                        detalleBoletaRepository.save(detalleBlister);
+
+                        totalVenta = totalVenta.add(precioBlister.multiply(BigDecimal.valueOf(blisterEnEsteStock)));
+                    }
+
+                    int sobrante = cantidadUsada % unidadesPorBlister;
+                    if (sobrante > 0) {
+                        unidadesSueltas += sobrante;
+                    }
+                }
+            }
+
+            // Luego, descontar y registrar las unidades sueltas
+            int cantidadRestanteUnidad = unidadesSueltas;
+            for (Stock stock : stocks) {
+                if (cantidadRestanteUnidad == 0) break;
+                if (stock.getCantidadUnidades() == 0) continue;
+                int cantidadUsada = Math.min(stock.getCantidadUnidades(), cantidadRestanteUnidad);
+                stock.setCantidadUnidades(stock.getCantidadUnidades() - cantidadUsada);
+                cantidadRestanteUnidad -= cantidadUsada;
+                stockRepository.save(stock);
+
+                if (cantidadUsada > 0) {
+                    DetalleBoleta detalleUnidad = new DetalleBoleta();
+                    detalleUnidad.setBoleta(boletaGuardada);
+                    detalleUnidad.setProducto(producto);
+                    detalleUnidad.setCantidad(cantidadUsada);
+                    detalleUnidad.setPrecioUnitario(precioUnidad);
+                    detalleBoletaRepository.save(detalleUnidad);
+
+                    totalVenta = totalVenta.add(precioUnidad.multiply(BigDecimal.valueOf(cantidadUsada)));
+                }
+            }
+            // Validación de stock insuficiente
+            if ((cantidadRestanteBlister > 0 && cantidadBlisters > 0) || cantidadRestanteUnidad > 0) {
                 throw new RuntimeException("Stock insuficiente para el producto con código de barras: " + codBarras);
             }
 
@@ -164,7 +209,7 @@ public class VentaService {
         movimiento.setMonto(totalVenta);
         movimiento.setDescripcion("Venta registrada - Boleta ID: " + boletaGuardada.getId());
         movimiento.setUsuario(usuario);
-        movimiento.setEsManual(false); // <-- AJUSTE CLAVE: venta automática
+        movimiento.setEsManual(false);
         movimientoEfectivoRepository.save(movimiento);
 
         // Actualizar totales en la caja
@@ -192,7 +237,6 @@ public class VentaService {
         cajaRepository.save(cajaAbierta);
     }
 
-    // Ahora tus DTOs y listados pueden nutrirse solo de la boleta
     public VentaResponseDTO convertirABoletaResponseDTO(Boleta boleta) {
         VentaResponseDTO dto = new VentaResponseDTO();
         dto.setId(boleta.getId());
@@ -237,6 +281,4 @@ public class VentaService {
                 .map(this::convertirABoletaResponseDTO)
                 .collect(Collectors.toList());
     }
-
-
 }
