@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.List;
 import quantify.BoticaSaid.dto.AgregarStockRequest;
@@ -30,6 +31,9 @@ public class ProductoService {
     // 1. Crear producto con stock (valida duplicidad por código de barras, permite reactivar)
     @Transactional
     public Object crearProductoConStock(ProductoRequest request) {
+
+        int acumuladorPadre = 0;
+
         System.out.println("=== CREANDO PRODUCTO ===");
         System.out.println("Código de barras: " + request.getCodigoBarras());
         System.out.println("Stocks recibidos: " + (request.getStocks() != null ? request.getStocks().size() : 0));
@@ -46,6 +50,9 @@ public class ProductoService {
                 existente.setDescuento(request.getDescuento());
                 existente.setLaboratorio(request.getLaboratorio());
                 existente.setCategoria(request.getCategoria());
+                existente.setCantidadUnidadesBlister(request.getCantidadUnidadesBlister());
+                existente.setPrecioVentaBlister(request.getPrecioVentaBlister());
+
 
                 // ✅ CORREGIDO: Usar clear() y add() en lugar de setStocks()
                 existente.getStocks().clear(); // Esto elimina automáticamente por orphanRemoval
@@ -86,12 +93,17 @@ public class ProductoService {
         producto.setDescuento(request.getDescuento());
         producto.setLaboratorio(request.getLaboratorio());
         producto.setCategoria(request.getCategoria());
+        System.out.println("Hay " + request.getCantidadUnidadesBlister() + " unidades blister");
+        producto.setCantidadUnidadesBlister(request.getCantidadUnidadesBlister());
+        System.out.println("Ayuda huevon vole");
+        producto.setPrecioVentaBlister(request.getPrecioVentaBlister());
         producto.setActivo(true);
 
         if (request.getStocks() != null && !request.getStocks().isEmpty()) {
             for (var stockReq : request.getStocks()) {
                 Stock stock = new Stock();
                 stock.setCantidadUnidades(stockReq.getCantidadUnidades());
+                acumuladorPadre +=  stockReq.getCantidadUnidades();
                 stock.setFechaVencimiento(stockReq.getFechaVencimiento());
                 stock.setPrecioCompra(stockReq.getPrecioCompra());
                 stock.setProducto(producto);
@@ -100,6 +112,7 @@ public class ProductoService {
             }
         }
 
+        producto.setCantidadGeneral(acumuladorPadre);
         Producto guardado = productoRepository.save(producto);
         System.out.println("Producto creado con " + guardado.getStocks().size() + " stocks");
         return guardado;
@@ -259,6 +272,8 @@ public class ProductoService {
             producto.setDescuento(request.getDescuento());
             producto.setLaboratorio(request.getLaboratorio());
             producto.setCategoria(request.getCategoria());
+            producto.setCantidadUnidadesBlister(request.getCantidadUnidadesBlister());
+            producto.setPrecioVentaBlister(request.getPrecioVentaBlister());
 
             // ✅ CORREGIDO: Usar clear() en lugar de deleteAll() + setStocks()
             System.out.println("Eliminando " + producto.getStocks().size() + " stocks existentes");

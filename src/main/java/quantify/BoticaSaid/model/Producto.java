@@ -44,6 +44,30 @@ public class Producto {
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Stock> stocks = new ArrayList<>();
 
+    @Column(name = "Cantidad_unidades_blister")
+    private Integer CantidadUnidadesBlister;
+
+    // Getter & Setter
+
+    public Integer getCantidadUnidadesBlister() {
+        return CantidadUnidadesBlister;
+    }
+
+    public void setCantidadUnidadesBlister(Integer cantidadUnidadesBlister) {
+        CantidadUnidadesBlister = cantidadUnidadesBlister;
+    }
+
+    @Column(name = "precio_venta_blister")
+    private BigDecimal precioVentaBlister;
+
+    public BigDecimal getPrecioVentaBlister() {
+        return precioVentaBlister;
+    }
+
+    public void setPrecioVentaBlister(BigDecimal precioVentaBlister) {
+        this.precioVentaBlister = precioVentaBlister;
+    }
+
     // Constructor vacío
     public Producto() {}
 
