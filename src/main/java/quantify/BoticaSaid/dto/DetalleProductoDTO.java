@@ -4,10 +4,9 @@ import java.math.BigDecimal;
 
 public class DetalleProductoDTO {
     private String codBarras;
-    private String nombre;          // ← Nuevo
+    private String nombre;
     private int cantidad;
-    private BigDecimal precio;      // ← Nuevo (precio unitario)
-    // private BigDecimal subtotal; // ← Opcional: cantidad * precio
+    private BigDecimal precio;
 
     public String getCodBarras() {
         return codBarras;
@@ -41,10 +40,4 @@ public class DetalleProductoDTO {
         this.precio = precio;
     }
 
-    // public BigDecimal getSubtotal() {
-    //     return subtotal;
-    // }
-    // public void setSubtotal(BigDecimal subtotal) {
-    //     this.subtotal = subtotal;
-    // }
 }
