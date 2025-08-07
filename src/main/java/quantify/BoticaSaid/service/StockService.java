@@ -29,6 +29,7 @@ public class StockService {
                     : null;
             return new StockItemDTO(
                     stock.getId(),
+                    stock.getCodigoStock(),
                     producto.getCodigoBarras(),
                     producto.getNombre(),
                     producto.getConcentracion(),

@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class AgregarStockRequest {
+    private String codigoStock;
     private String codigoBarras;
     private int cantidadUnidades;
 
@@ -17,6 +18,15 @@ public class AgregarStockRequest {
     public AgregarStockRequest() {}
 
     // Getters y Setters
+
+    public String getCodigoStock() {
+        return codigoStock;
+    }
+
+    public void setCodigoStock(String codigoStock) {
+        this.codigoStock = codigoStock;
+    }
+
     public String getCodigoBarras() {
         return codigoBarras;
     }

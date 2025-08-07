@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class StockItemDTO {
     private int id;
+    private String codigoStock;
     private String codigoBarras;
     private String nombre;
     private String concentracion;
@@ -19,6 +20,7 @@ public class StockItemDTO {
 
     public StockItemDTO(
             int id,
+            String codigoStock,
             String codigoBarras,
             String nombre,
             String concentracion,
@@ -31,6 +33,7 @@ public class StockItemDTO {
             String categoria
     ) {
         this.id = id;
+        this.codigoStock = codigoStock;
         this.codigoBarras = codigoBarras;
         this.nombre = nombre;
         this.concentracion = concentracion;
@@ -44,6 +47,16 @@ public class StockItemDTO {
     }
 
     // Getters y Setters
+
+
+    public String getCodigoStock() {
+        return codigoStock;
+    }
+
+    public void setCodigoStock(String codigoStock) {
+        this.codigoStock = codigoStock;
+    }
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

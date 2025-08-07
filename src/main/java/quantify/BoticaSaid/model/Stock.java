@@ -15,6 +15,9 @@ public class Stock {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "codigo_stock", nullable = true)
+    private String codigoStock;
+
     @Column(name = "cantidad_unidades")
     private int cantidadUnidades;
 
@@ -41,6 +44,16 @@ public class Stock {
     }
 
     // Getters y Setters
+
+
+    public String getCodigoStock() {
+        return codigoStock;
+    }
+
+    public void setCodigoStock(String codigoStock) {
+        this.codigoStock = codigoStock;
+    }
+
     public int getId() {
         return id;
     }

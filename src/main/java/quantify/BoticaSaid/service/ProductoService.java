@@ -181,6 +181,7 @@ public class ProductoService {
         }
 
         Stock nuevoStock = new Stock();
+        nuevoStock.setCodigoStock(request.getCodigoStock());
         nuevoStock.setCantidadUnidades(request.getCantidadUnidades());
         nuevoStock.setFechaVencimiento(request.getFechaVencimiento());
         nuevoStock.setPrecioCompra(request.getPrecioCompra());
