@@ -25,7 +25,7 @@ public class StockService {
         return stocks.stream().map(stock -> {
             Producto producto = stock.getProducto();
             String fechaIso = stock.getFechaVencimiento() != null
-                    ? stock.getFechaVencimiento().format(formatter)  // ← Cambié de sdf.format() a .format()
+                    ? stock.getFechaVencimiento().format(formatter)
                     : null;
             return new StockItemDTO(
                     stock.getId(),
@@ -33,7 +33,7 @@ public class StockService {
                     producto.getNombre(),
                     producto.getConcentracion(),
                     stock.getCantidadUnidades(),
-                    producto.getCantidadGeneral(),
+                    producto.getCantidadMinima() != null ? producto.getCantidadMinima() : 0,
                     stock.getPrecioCompra(),
                     producto.getPrecioVentaUnd(),
                     fechaIso,
@@ -49,14 +49,12 @@ public class StockService {
         stock.setCantidadUnidades(dto.getCantidadUnidades());
         stock.setPrecioCompra(dto.getPrecioCompra());
 
-        // ✅ CORREGIDO: Usar LocalDate.parse() en lugar de SimpleDateFormat.parse()
         try {
             if (dto.getFechaVencimiento() != null) {
                 LocalDate fecha = LocalDate.parse(dto.getFechaVencimiento(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                stock.setFechaVencimiento(fecha);  // ← Ahora pasa LocalDate correctamente
+                stock.setFechaVencimiento(fecha);
             }
         } catch (Exception e) {
-            // Manejar parseo
             stock.setFechaVencimiento(null);
         }
         stockRepository.save(stock);

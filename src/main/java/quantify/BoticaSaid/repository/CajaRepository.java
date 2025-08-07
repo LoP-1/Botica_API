@@ -22,5 +22,6 @@ public interface CajaRepository extends JpaRepository<Caja, Long> {
     Optional<Caja> findCajaAbiertaPorDniUsuario(@Param("dni") String dni);
     List<Caja> findByFechaCierreIsNull();
 
+    Optional<Caja> findFirstByFechaCierreIsNullOrderByFechaAperturaDesc();
 }
 

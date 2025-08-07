@@ -8,6 +8,7 @@ public class ProductoRequest {
     private String nombre;
     private String concentracion;
     private int cantidadGeneral;
+    private Integer cantidadMinima;
     private BigDecimal precioVentaUnd;
     private BigDecimal descuento;
     private String laboratorio;
@@ -19,6 +20,13 @@ public class ProductoRequest {
 
     // Getters y setters
 
+    public Integer getCantidadMinima() {
+        return cantidadMinima;
+    }
+
+    public void setCantidadMinima(Integer cantidadMinima) {
+        this.cantidadMinima = cantidadMinima;
+    }
 
     public int getCantidadUnidadesBlister() {
         return cantidadUnidadesBlister;
@@ -108,4 +116,3 @@ public class ProductoRequest {
         this.stocks = stocks;
     }
 }
-

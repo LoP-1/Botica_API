@@ -1,16 +1,22 @@
 package quantify.BoticaSaid.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ProductoResponse {
     private String codigoBarras;
     private String nombre;
     private String concentracion;
     private int cantidadGeneral;
+    private Integer cantidadMinima;
     private BigDecimal precioVentaUnd;
-    private BigDecimal descuento; // <--- AGREGA ESTE CAMPO
+    private BigDecimal descuento;
     private String laboratorio;
     private String categoria;
+    private Integer cantidadUnidadesBlister;
+    private BigDecimal precioVentaBlister;
+    private List<StockLoteDTO> stocks;
+
 
     // Getters y setters
 
@@ -46,6 +52,14 @@ public class ProductoResponse {
         this.cantidadGeneral = cantidadGeneral;
     }
 
+    public Integer getCantidadMinima() {
+        return cantidadMinima;
+    }
+
+    public void setCantidadMinima(Integer cantidadMinima) {
+        this.cantidadMinima = cantidadMinima;
+    }
+
     public BigDecimal getPrecioVentaUnd() {
         return precioVentaUnd;
     }
@@ -77,4 +91,21 @@ public class ProductoResponse {
     public void setCategoria(String categoria) {
         this.categoria = categoria;
     }
+    public Integer getCantidadUnidadesBlister() {
+        return cantidadUnidadesBlister;
+    }
+
+    public void setCantidadUnidadesBlister(Integer cantidadUnidadesBlister) {
+        this.cantidadUnidadesBlister = cantidadUnidadesBlister;
+    }
+
+    public BigDecimal getPrecioVentaBlister() {
+        return precioVentaBlister;
+    }
+
+    public void setPrecioVentaBlister(BigDecimal precioVentaBlister) {
+        this.precioVentaBlister = precioVentaBlister;
+    }
+    public List<StockLoteDTO> getStocks() { return stocks; }
+    public void setStocks(List<StockLoteDTO> stocks) { this.stocks = stocks; }
 }

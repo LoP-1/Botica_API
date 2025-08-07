@@ -21,6 +21,9 @@ public class Producto {
     @Column(name = "cantidad_general")
     private int cantidadGeneral;
 
+    @Column(name = "cantidad_minima")
+    private Integer cantidadMinima; // NUEVO CAMPO
+
     @Column(name = "precio_venta_und")
     private BigDecimal precioVentaUnd;
 
@@ -40,33 +43,14 @@ public class Producto {
     @Column(nullable = false)
     private boolean activo = true;
 
-
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Stock> stocks = new ArrayList<>();
 
     @Column(name = "Cantidad_unidades_blister")
     private Integer CantidadUnidadesBlister;
 
-    // Getter & Setter
-
-    public Integer getCantidadUnidadesBlister() {
-        return CantidadUnidadesBlister;
-    }
-
-    public void setCantidadUnidadesBlister(Integer cantidadUnidadesBlister) {
-        CantidadUnidadesBlister = cantidadUnidadesBlister;
-    }
-
     @Column(name = "precio_venta_blister")
     private BigDecimal precioVentaBlister;
-
-    public BigDecimal getPrecioVentaBlister() {
-        return precioVentaBlister;
-    }
-
-    public void setPrecioVentaBlister(BigDecimal precioVentaBlister) {
-        this.precioVentaBlister = precioVentaBlister;
-    }
 
     // Constructor vacío
     public Producto() {}
@@ -102,6 +86,14 @@ public class Producto {
 
     public void setCantidadGeneral(int cantidadGeneral) {
         this.cantidadGeneral = cantidadGeneral;
+    }
+
+    public Integer getCantidadMinima() {
+        return cantidadMinima;
+    }
+
+    public void setCantidadMinima(Integer cantidadMinima) {
+        this.cantidadMinima = cantidadMinima;
     }
 
     public BigDecimal getPrecioVentaUnd() {
@@ -166,5 +158,21 @@ public class Producto {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public Integer getCantidadUnidadesBlister() {
+        return CantidadUnidadesBlister;
+    }
+
+    public void setCantidadUnidadesBlister(Integer cantidadUnidadesBlister) {
+        CantidadUnidadesBlister = cantidadUnidadesBlister;
+    }
+
+    public BigDecimal getPrecioVentaBlister() {
+        return precioVentaBlister;
+    }
+
+    public void setPrecioVentaBlister(BigDecimal precioVentaBlister) {
+        this.precioVentaBlister = precioVentaBlister;
     }
 }

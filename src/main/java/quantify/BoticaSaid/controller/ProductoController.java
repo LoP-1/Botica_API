@@ -26,7 +26,9 @@ public class ProductoController {
             if (result instanceof Map) {
                 return ResponseEntity.ok(result); // 200 OK si fue reactivado
             } else if (result instanceof Producto) {
-                return ResponseEntity.status(201).body(result); // 201 Created si es nuevo
+                Producto producto = (Producto) result;
+                ProductoResponse resp = productoService.toProductoResponse(producto);
+                return ResponseEntity.status(201).body(resp); // 201 Created si es nuevo
             } else {
                 return ResponseEntity.status(500).body("Error inesperado.");
             }
@@ -37,26 +39,31 @@ public class ProductoController {
 
     // 2. Buscar producto por código de barras (y sus stocks)
     @GetMapping("/codigo-barras/{codigo}")
-    public ResponseEntity<Producto> obtenerPorCodigoBarras(@PathVariable String codigo) {
+    public ResponseEntity<ProductoResponse> obtenerPorCodigoBarras(@PathVariable String codigo) {
         Producto producto = productoService.buscarPorCodigoBarras(codigo);
-        return (producto != null)
-                ? ResponseEntity.ok(producto)
-                : ResponseEntity.notFound().build();
+        if (producto != null) {
+            ProductoResponse resp = productoService.toProductoResponse(producto);
+            return ResponseEntity.ok(resp);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    // 3. ✅ CORREGIDO: GET /productos devuelve Producto completo con stocks
+    // 3. GET /productos devuelve ProductoResponse completo con stocks
     @GetMapping
-    public ResponseEntity<List<Producto>> listarTodos() {
+    public ResponseEntity<List<ProductoResponse>> listarTodos() {
         List<Producto> productos = productoService.listarTodos();
+        List<ProductoResponse> productosRes = productos.stream()
+                .map(productoService::toProductoResponse)
+                .toList();
 
-        // ✅ Log para debugging
-        System.out.println("🔍 GET /productos - Devolviendo " + productos.size() + " productos");
-        for (Producto p : productos) {
-            System.out.println("📦 Producto: " + p.getCodigoBarras() + " con " +
-                    (p.getStocks() != null ? p.getStocks().size() : 0) + " stocks");
+        // Log para debugging
+        System.out.println("🔍 GET /productos - Devolviendo " + productosRes.size() + " productos");
+        for (ProductoResponse p : productosRes) {
+            System.out.println("📦 Producto: " + p.getCodigoBarras());
         }
 
-        return ResponseEntity.ok(productos); // ✅ Devuelve Producto completo, no ProductoResponse
+        return ResponseEntity.ok(productosRes);
     }
 
     // 4. Agregar stock adicional a un producto existente
@@ -70,10 +77,14 @@ public class ProductoController {
 
     // 5. Buscar por nombre o categoría
     @GetMapping("/buscar")
-    public ResponseEntity<List<Producto>> buscarPorNombreOCategoria(
+    public ResponseEntity<List<ProductoResponse>> buscarPorNombreOCategoria(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) String categoria) {
-        return ResponseEntity.ok(productoService.buscarPorNombreOCategoria(nombre, categoria));
+        List<Producto> productos = productoService.buscarPorNombreOCategoria(nombre, categoria);
+        List<ProductoResponse> productosRes = productos.stream()
+                .map(productoService::toProductoResponse)
+                .toList();
+        return ResponseEntity.ok(productosRes);
     }
 
     // 6. Eliminar producto (borrado lógico)
@@ -87,9 +98,9 @@ public class ProductoController {
         }
     }
 
-    // 7. ✅ CORREGIDO: Actualizar datos del producto con logs
+    // 7. Actualizar datos del producto con logs
     @PutMapping("/{codigoBarras}")
-    public ResponseEntity<Producto> actualizarPorCodigoBarras(
+    public ResponseEntity<ProductoResponse> actualizarPorCodigoBarras(
             @PathVariable String codigoBarras,
             @RequestBody ProductoRequest request) {
 
@@ -103,7 +114,8 @@ public class ProductoController {
             System.out.println("✅ Producto actualizado exitosamente");
             System.out.println("📦 Stocks en producto actualizado: " +
                     (actualizado.getStocks() != null ? actualizado.getStocks().size() : 0));
-            return ResponseEntity.ok(actualizado);
+            ProductoResponse resp = productoService.toProductoResponse(actualizado);
+            return ResponseEntity.ok(resp);
         } else {
             System.out.println("❌ Producto no encontrado para actualizar");
             return ResponseEntity.notFound().build();
@@ -112,32 +124,12 @@ public class ProductoController {
 
     // 8. Ver productos con stock menor a cierto umbral
     @GetMapping("/stock-bajo")
-    public ResponseEntity<List<Producto>> productosConStockBajo(
+    public ResponseEntity<List<ProductoResponse>> productosConStockBajo(
             @RequestParam(defaultValue = "10") int umbral) {
-        return ResponseEntity.ok(productoService.buscarProductosConStockMenorA(umbral));
-    }
-
-    // ✅ OPCIONAL: Endpoint separado para ProductoResponse si necesitas uno ligero
-    @GetMapping("/ligero")
-    public ResponseEntity<List<ProductoResponse>> listarTodosLigero() {
-        List<Producto> productos = productoService.listarTodos();
+        List<Producto> productos = productoService.buscarProductosConStockMenorA(umbral);
         List<ProductoResponse> productosRes = productos.stream()
-                .map(this::toProductoResponse)
+                .map(productoService::toProductoResponse)
                 .toList();
         return ResponseEntity.ok(productosRes);
-    }
-
-    // ✅ CORREGIDO: Método helper para ProductoResponse (sin stocks para respuestas ligeras)
-    private ProductoResponse toProductoResponse(Producto producto) {
-        ProductoResponse resp = new ProductoResponse();
-        resp.setCodigoBarras(producto.getCodigoBarras());
-        resp.setNombre(producto.getNombre());
-        resp.setConcentracion(producto.getConcentracion());
-        resp.setCantidadGeneral(producto.getCantidadGeneral());
-        resp.setPrecioVentaUnd(producto.getPrecioVentaUnd());
-        resp.setDescuento(producto.getDescuento());
-        resp.setLaboratorio(producto.getLaboratorio());
-        resp.setCategoria(producto.getCategoria());
-        return resp;
     }
 }

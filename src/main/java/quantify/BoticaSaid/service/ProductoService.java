@@ -1,23 +1,23 @@
 package quantify.BoticaSaid.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import quantify.BoticaSaid.dto.ProductoRequest;
-import quantify.BoticaSaid.dto.ProductoResponse;
+import org.springframework.data.domain.PageRequest;
+import quantify.BoticaSaid.dto.*;
 import quantify.BoticaSaid.model.Producto;
 import quantify.BoticaSaid.model.Stock;
 import quantify.BoticaSaid.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.sql.SQLOutput;
-import java.util.HashMap;
-import java.util.List;
-import quantify.BoticaSaid.dto.AgregarStockRequest;
+import java.time.LocalDate;
+import java.util.*;
+
 import quantify.BoticaSaid.repository.StockRepository;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.stream.Collectors;
 
 @Service
 public class ProductoService {
@@ -52,6 +52,7 @@ public class ProductoService {
                 existente.setCategoria(request.getCategoria());
                 existente.setCantidadUnidadesBlister(request.getCantidadUnidadesBlister());
                 existente.setPrecioVentaBlister(request.getPrecioVentaBlister());
+                existente.setCantidadMinima(request.getCantidadMinima());
 
 
                 // ✅ CORREGIDO: Usar clear() y add() en lugar de setStocks()
@@ -98,6 +99,7 @@ public class ProductoService {
         System.out.println("Ayuda huevon vole");
         producto.setPrecioVentaBlister(request.getPrecioVentaBlister());
         producto.setActivo(true);
+        producto.setCantidadMinima(request.getCantidadMinima());
 
         if (request.getStocks() != null && !request.getStocks().isEmpty()) {
             for (var stockReq : request.getStocks()) {
@@ -274,6 +276,7 @@ public class ProductoService {
             producto.setCategoria(request.getCategoria());
             producto.setCantidadUnidadesBlister(request.getCantidadUnidadesBlister());
             producto.setPrecioVentaBlister(request.getPrecioVentaBlister());
+            producto.setCantidadMinima(request.getCantidadMinima());
 
             // ✅ CORREGIDO: Usar clear() en lugar de deleteAll() + setStocks()
             System.out.println("Eliminando " + producto.getStocks().size() + " stocks existentes");
@@ -330,6 +333,13 @@ public class ProductoService {
             return resultado;
         }
     }
+    public StockLoteDTO toStockLoteDTO(Stock stock) {
+        StockLoteDTO dto = new StockLoteDTO();
+        dto.setCantidadUnidades(stock.getCantidadUnidades());
+        dto.setFechaVencimiento(stock.getFechaVencimiento());
+        dto.setPrecioCompra(stock.getPrecioCompra());
+        return dto;
+    }
 
     public ProductoResponse toProductoResponse(Producto producto) {
         ProductoResponse resp = new ProductoResponse();
@@ -337,10 +347,77 @@ public class ProductoService {
         resp.setNombre(producto.getNombre());
         resp.setConcentracion(producto.getConcentracion());
         resp.setCantidadGeneral(producto.getCantidadGeneral());
+        resp.setCantidadMinima(producto.getCantidadMinima());
         resp.setPrecioVentaUnd(producto.getPrecioVentaUnd());
         resp.setDescuento(producto.getDescuento());
         resp.setLaboratorio(producto.getLaboratorio());
         resp.setCategoria(producto.getCategoria());
+        resp.setCantidadUnidadesBlister(producto.getCantidadUnidadesBlister());
+        resp.setPrecioVentaBlister(producto.getPrecioVentaBlister());
+
+        // 👇 Esta línea asegura que siempre envíes una lista, no null:
+        if (producto.getStocks() != null && !producto.getStocks().isEmpty()) {
+            resp.setStocks(
+                    producto.getStocks().stream()
+                            .map(this::toStockLoteDTO)
+                            .collect(Collectors.toList())
+            );
+        } else {
+            resp.setStocks(new ArrayList<>()); // o Collections.emptyList()
+        }
+
         return resp;
     }
+    public List<DashboardResumenDTO.ProductoMasVendidoDTO> getProductosMasVendidosDTO(int top) {
+        List<Object[]> resultados = productoRepository.findProductosMasVendidos((Pageable) PageRequest.of(0, top));
+        return resultados.stream().map(r -> {
+            DashboardResumenDTO.ProductoMasVendidoDTO dto = new DashboardResumenDTO.ProductoMasVendidoDTO();
+            dto.nombre = (String) r[0];
+            dto.unidades = ((Number) r[1]).intValue();
+            dto.porcentaje = r.length > 2 ? ((Number) r[2]).doubleValue() : 0.0;
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * Productos con bajo stock (stock crítico)
+     */
+    public List<DashboardResumenDTO.ProductoCriticoDTO> getProductosCriticosDTO() {
+        int umbralCritico = 10; // puedes parametrizarlo
+        return listarTodos().stream()
+                .filter(p -> p.getCantidadGeneral() < umbralCritico)
+                .map(p -> {
+                    DashboardResumenDTO.ProductoCriticoDTO dto = new DashboardResumenDTO.ProductoCriticoDTO();
+                    dto.nombre = p.getNombre();
+                    dto.stock = p.getCantidadGeneral();
+                    return dto;
+                }).collect(Collectors.toList());
+    }
+
+    /**
+     * Productos próximos a vencer (por ejemplo, vencen en menos de 30 días)
+     */
+    public List<DashboardResumenDTO.ProductoVencimientoDTO> getProductosPorVencerDTO() {
+        int diasAviso = 30;
+        LocalDate hoy = LocalDate.now();
+
+        return listarTodos().stream()
+                .flatMap(p -> p.getStocks().stream()
+                        .filter(stock -> stock.getFechaVencimiento() != null)
+                        .filter(stock -> {
+                            long dias = java.time.temporal.ChronoUnit.DAYS.between(hoy, stock.getFechaVencimiento());
+                            return dias >= 0 && dias <= diasAviso;
+                        })
+                        .map(stock -> {
+                            DashboardResumenDTO.ProductoVencimientoDTO dto = new DashboardResumenDTO.ProductoVencimientoDTO();
+                            dto.nombre = p.getNombre();
+                            long dias = java.time.temporal.ChronoUnit.DAYS.between(hoy, stock.getFechaVencimiento());
+                            dto.dias = (int) dias;
+                            return dto;
+                        })
+                )
+                .sorted(Comparator.comparingInt(dto -> dto.dias))
+                .collect(Collectors.toList());
+    }
+
 }

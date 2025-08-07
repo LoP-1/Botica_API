@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .cors(cors -> cors
                         .configurationSource(request -> {
                             org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
-                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000", "http://localhost:8080", "http://192.168.1.11:3000", "http://192.168.56.1:3000", "http://51.161.10.179:3000"));
+                            config.setAllowedOrigins(java.util.List.of("http://localhost:3000", "http://localhost:4000", "http://localhost:8080", "http://192.168.1.11:3000", "http://192.168.56.1:3000", "http://51.161.10.179:3000", "https://62.169.28.77:3000", "http://62.169.28.77:3000", "http://62.169.28.77", "https://62.169.28.77"));
                             config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                             config.setAllowedHeaders(java.util.List.of("*"));
                             config.setAllowCredentials(true);

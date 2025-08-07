@@ -24,6 +24,7 @@ public class VentaController {
 
     @PostMapping
     public ResponseEntity<String> registrarVenta(@RequestBody VentaRequestDTO ventaDTO) {
+        System.out.println("Numero recibido en Controller: " + ventaDTO.getNumero());
         try {
             ventaService.registrarVenta(ventaDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body("Venta registrada exitosamente");

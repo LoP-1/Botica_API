@@ -8,7 +8,7 @@ public class StockItemDTO {
     private String nombre;
     private String concentracion;
     private int cantidadUnidades;
-    private int cantidadMinima; // Puedes mapearlo a cantidadGeneral si aún no tienes campo específico
+    private Integer cantidadMinima; // Puedes mapearlo a cantidadGeneral si aún no tienes campo específico
     private BigDecimal precioCompra;
     private BigDecimal precioVenta; // <-- añade este campo si lo necesitas en frontend
     private String fechaVencimiento; // <-- ahora es String, formato "yyyy-MM-dd"
@@ -23,7 +23,7 @@ public class StockItemDTO {
             String nombre,
             String concentracion,
             int cantidadUnidades,
-            int cantidadMinima,
+            Integer cantidadMinima,
             BigDecimal precioCompra,
             BigDecimal precioVenta,
             String fechaVencimiento,

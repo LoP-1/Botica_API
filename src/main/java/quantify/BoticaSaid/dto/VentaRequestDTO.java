@@ -1,17 +1,25 @@
 package quantify.BoticaSaid.dto;
 
 import quantify.BoticaSaid.model.MetodoPago;
-
 import java.math.BigDecimal;
 import java.util.List;
 
 public class VentaRequestDTO {
+    private String numero; // <--- AGREGADO
     private String dniCliente;
     private String dniVendedor;
     private String nombreCliente;
     private MetodoPagoDTO metodoPago;
     private List<DetalleProductoDTO> productos;
 
+    // Getter y Setter para 'numero'
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
 
     public String getNombreCliente() {
         return nombreCliente;
@@ -45,7 +53,6 @@ public class VentaRequestDTO {
         this.dniVendedor = dniVendedor;
     }
 
-
     public List<DetalleProductoDTO> getProductos() {
         return productos;
     }
@@ -54,4 +61,3 @@ public class VentaRequestDTO {
         this.productos = productos;
     }
 }
-

@@ -281,5 +281,25 @@ public class CajaService {
         movimiento.setEsManual(true); // CLAVE: es manual
         movimientoEfectivoRepository.save(movimiento);
     }
+    @Transactional(readOnly = true)
+    public DashboardResumenDTO.SaldoCajaDTO getSaldoActual() {
+        // Busca la última caja abierta (puedes adaptar esta lógica a tu modelo de negocio)
+        Caja caja = cajaRepository.findFirstByFechaCierreIsNullOrderByFechaAperturaDesc()
+                .orElse(null);
+
+        DashboardResumenDTO.SaldoCajaDTO dto = new DashboardResumenDTO.SaldoCajaDTO();
+        if (caja == null) {
+            dto.total = 0.0;
+            dto.efectivo = 0.0;
+            dto.yape = 0.0;
+            return dto;
+        }
+        BigDecimal efectivo = caja.getEfectivoFinal() != null ? caja.getEfectivoFinal() : BigDecimal.ZERO;
+        BigDecimal yape = caja.getTotalYape() != null ? caja.getTotalYape() : BigDecimal.ZERO;
+        dto.efectivo = efectivo.doubleValue();
+        dto.yape = yape.doubleValue();
+        dto.total = efectivo.add(yape).doubleValue();
+        return dto;
+    }
 
 }
