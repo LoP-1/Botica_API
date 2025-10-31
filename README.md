@@ -43,21 +43,6 @@ Botica_API es una API RESTful desarrollada en Java que proporciona las funcional
 - El acceso a la mayoría de los endpoints requiere autenticación con JWT.
 - Obtén un token realizando login y úsalo en la cabecera `Authorization: Bearer <token>` para acceder a rutas protegidas.
 
-## Estructura de la API (resumida)
-
-- `/usuarios`  
-  - POST `/registro`: Crear usuario  
-  - POST `/login`: Autenticación y obtención de JWT
-
-- `/productos`  
-  - CRUD de productos  
-  - Gestión de stock
-
-- `/caja`  
-  - Manejo de movimientos de caja
-
-> **Nota:** Consulta la documentación interna de los endpoints o el código fuente para más detalles sobre las rutas y parámetros disponibles.
-
 ## Acerca del proyecto
 
 Este proyecto busca ofrecer una solución sencilla y segura para la gestión de una botica tradicional, enfocándose en la facilidad de uso, seguridad y control de stock eficiente.
